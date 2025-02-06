@@ -13,7 +13,7 @@ namespace COMP397
         }
         private void Update()
         {
-            var destination = GameObject.FindWithTag("Player").transform.position;
+            Vector3 destination = GameObject.FindWithTag("Player").transform.position;
             agent.destination = destination;
         }
     }
