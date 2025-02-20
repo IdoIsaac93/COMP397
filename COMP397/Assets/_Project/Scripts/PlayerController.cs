@@ -4,8 +4,7 @@ namespace COMP397
 {
     [RequireComponent(typeof(Rigidbody))]
 
-
-    public class PlayerController : MonoBehaviour
+    public class PlayerController : Subject
     {
         [SerializeField] private InputReader input;
         [SerializeField] private Rigidbody rb;
@@ -26,6 +25,7 @@ namespace COMP397
         private void Start ()
         {
             input.EnablePlayerActions();
+            NotifyObservers();
         }
 
         private void OnEnable()
