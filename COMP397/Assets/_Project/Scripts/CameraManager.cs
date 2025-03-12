@@ -10,8 +10,8 @@ namespace COMP397
 
         private void Awake()
         {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
+            //Cursor.lockState = CursorLockMode.Locked;
+            //Cursor.visible = false;
             if (playerTransform != null) { return; }
             playerTransform = GameObject.FindWithTag("Player").transform;
         }

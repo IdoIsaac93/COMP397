@@ -5,14 +5,19 @@ using UnityEngine.AI;
 
 namespace COMP397
 {
-    public class EnemyController : MonoBehaviour , IObserver
+    public class EnemyController : MonoBehaviour, IObserver
     {
-        private NavMeshAgent agent;
         [SerializeField] private PlayerController player;
         [SerializeField] private List<Transform> waypoints = new();
+        [SerializeField] private float distanceThreshold = 2.0f;
+        private NavMeshAgent agent;
         private int index = 0;
         private Vector3 destination;
-        [SerializeField] private float distanceThreshold;
+
+        [Header("Enemy Sensing Stats")]
+        [SerializeField] private EnemyStates state = EnemyStates.Patrolling;
+        [SerializeField] private LayerMask mask;
+        [SerializeField] private int viewDistance = 10;
 
         private void Awake()
         {
@@ -37,25 +42,53 @@ namespace COMP397
         }
         private void Update()
         {
-            if (Vector3.Distance(destination, transform.position) < distanceThreshold)
+            switch (state)
             {
-                index = (index + 1) % waypoints.Count;
-                destination = waypoints[index].position;
-                agent.destination = destination;
+                case EnemyStates.Patrolling:
+                    if (Vector3.Distance(destination, transform.position) < distanceThreshold)
+                    {
+                        index = (index + 1) % waypoints.Count;
+                        destination = waypoints[index].position;
+                    }
+                    break;
+                case EnemyStates.Chasing:
+                    destination = player.gameObject.transform.position;
+                    break;
+                default:
+                    Debug.LogError("State not configured", this);
+                    break;
             }
+            agent.destination = destination;
         }
 
+        private void FixedUpdate()
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), out hit, viewDistance, mask))
+            {
+                if (hit.transform.gameObject.CompareTag("Player"))
+                {
+                    state = EnemyStates.Chasing;
+                    Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * viewDistance, Color.green);
+                }
+                else
+                {
+                    state = EnemyStates.Patrolling;
+                    Debug.DrawRay(transform.position, transform.TransformDirection(Vector3.forward) * viewDistance, Color.yellow);
+                }
+            }
+        }
         private void OnDrawGizmos()
         {
             if (waypoints.Count > 0)
             {
                 Gizmos.color = Color.green;
-                for(int i = 0; i < waypoints.Count; i++)
+                for (int i = 0; i < waypoints.Count; i++)
                 {
                     Gizmos.DrawSphere(waypoints[i].position, distanceThreshold);
-                    if(i > 0)
+                    if (i > 0)
                     {
-                        Gizmos.DrawLine(waypoints[i -1].position, waypoints[i].position);
+                        Gizmos.DrawLine(waypoints[i - 1].position, waypoints[i].position);
                     }
                 }
             }
